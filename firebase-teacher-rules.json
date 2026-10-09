@@ -19,10 +19,10 @@
           ".read": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher')",
           "$uid": {
             ".read": "auth != null && ($uid === auth.uid || (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher'))",
-            ".write": "auth != null && (((root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && $uid !== auth.uid && $uid !== root.child('rooms').child($room).child('teacherUid').val()) || ($uid === auth.uid && root.child('rooms').child($room).child('teacherUid').exists() && newData.exists() && ((data.child('role').val() !== 'teacher' && (newData.child('role').val() === 'artist' || newData.child('role').val() === 'viewer')) || (newData.child('role').val() === 'teacher' && (data.child('role').val() === 'teacher' || (newData.child('joinCode').isString() && newData.child('joinCode').val() === root.child('rooms').child($room).child('teacherAccess').child('code').val() && root.child('rooms').child($room).child('teacherAccess').child('issuedAt').val() > now - 86400000))))))",
+            ".write": "auth != null && (((root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && $uid !== auth.uid && $uid !== root.child('rooms').child($room).child('teacherUid').val()) || ($uid === auth.uid && root.child('rooms').child($room).child('teacherUid').exists() && newData.exists() && ((data.child('role').val() !== 'teacher' && (newData.child('role').val() === 'artist' || newData.child('role').val() === 'viewer')) || (newData.child('role').val() === 'teacher' && (data.child('role').val() === 'teacher' || (newData.child('pinProof').isString() && root.child('rooms').child($room).child('teacherPin').isString() && newData.child('pinProof').val() === root.child('rooms').child($room).child('teacherPin').val()))))))",
             ".validate": "newData.hasChildren(['role','name']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 32 && (newData.child('role').val() === 'artist' || newData.child('role').val() === 'viewer' || newData.child('role').val() === 'teacher')",
-            "joinCode": {
-              ".validate": "newData.isString() && newData.val().matches(/^[A-F0-9]{32}$/)"
+            "pinProof": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
             }
           }
         },
@@ -38,18 +38,13 @@
           }
         },
         "teacherAccess": {
+          ".read": false,
+          ".write": false
+        },
+        "teacherPin": {
           ".read": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher')",
-          ".write": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && newData.hasChildren(['code','issuedAt'])",
-          ".validate": "newData.child('code').isString() && newData.child('code').val().matches(/^[A-F0-9]{32}$/) && newData.child('issuedAt').isNumber() && newData.child('issuedAt').val() <= now && newData.child('issuedAt').val() >= now - 60000",
-          "code": {
-            ".validate": "newData.isString()"
-          },
-          "issuedAt": {
-            ".validate": "newData.isNumber()"
-          },
-          "$other": {
-            ".validate": false
-          }
+          ".write": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && newData.exists()",
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
         }
       }
     }
