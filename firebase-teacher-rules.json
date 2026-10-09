@@ -1,0 +1,57 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": false,
+        ".write": "auth != null && !data.exists() && newData.hasChildren(['teacherUid','createdAt','members','settings']) && newData.child('teacherUid').val() === auth.uid && newData.child('members').child(auth.uid).child('role').val() === 'teacher'",
+        "teacherUid": {
+          ".read": "auth != null && data.val() === auth.uid"
+        },
+        "createdAt": {
+          ".read": "auth != null"
+        },
+        "settings": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()",
+          ".write": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && newData.hasChildren(['liveEnabled','completedEnabled'])",
+          ".validate": "newData.child('liveEnabled').isBoolean() && newData.child('completedEnabled').isBoolean()"
+        },
+        "members": {
+          ".read": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher')",
+          "$uid": {
+            ".read": "auth != null && ($uid === auth.uid || (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher'))",
+            ".write": "auth != null && (((root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && $uid !== auth.uid && $uid !== root.child('rooms').child($room).child('teacherUid').val()) || ($uid === auth.uid && root.child('rooms').child($room).child('teacherUid').exists() && newData.exists() && ((data.child('role').val() !== 'teacher' && (newData.child('role').val() === 'artist' || newData.child('role').val() === 'viewer')) || (newData.child('role').val() === 'teacher' && (data.child('role').val() === 'teacher' || (newData.child('joinCode').isString() && newData.child('joinCode').val() === root.child('rooms').child($room).child('teacherAccess').child('code').val() && root.child('rooms').child($room).child('teacherAccess').child('issuedAt').val() > now - 86400000))))))",
+            ".validate": "newData.hasChildren(['role','name']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 32 && (newData.child('role').val() === 'artist' || newData.child('role').val() === 'viewer' || newData.child('role').val() === 'teacher')",
+            "joinCode": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-F0-9]{32}$/)"
+            }
+          }
+        },
+        "live": {
+          ".read": false,
+          ".write": false
+        },
+        "completed": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()",
+          "$workId": {
+            ".write": "auth != null && ((root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') || ((root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'artist') && root.child('rooms').child($room).child('settings').child('completedEnabled').val() === true && ((!data.exists() && newData.child('authorUid').val() === auth.uid) || (data.exists() && data.child('authorUid').val() === auth.uid && newData.child('authorUid').val() === auth.uid))))",
+            ".validate": "newData.hasChildren(['id','authorUid','ownerName','title','thumb','sprite','updatedAt']) && newData.child('id').val() === $workId && newData.child('authorUid').isString() && newData.child('ownerName').isString() && newData.child('ownerName').val().length <= 32 && newData.child('title').isString() && newData.child('title').val().length <= 40 && newData.child('thumb').isString() && newData.child('thumb').val().length < 125000 && newData.child('sprite').isString() && newData.child('sprite').val().beginsWith('data:image/png;base64,') && newData.child('sprite').val().length < 180000 && newData.child('updatedAt').isNumber() && (!data.exists() || newData.child('authorUid').val() === data.child('authorUid').val()) && ((root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') || (!data.exists() && (!newData.child('hidden').exists() || newData.child('hidden').val() === false)) || (data.exists() && newData.child('hidden').val() === data.child('hidden').val() && newData.child('motion').val() === data.child('motion').val()))"
+          }
+        },
+        "teacherAccess": {
+          ".read": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher')",
+          ".write": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && newData.hasChildren(['code','issuedAt'])",
+          ".validate": "newData.child('code').isString() && newData.child('code').val().matches(/^[A-F0-9]{32}$/) && newData.child('issuedAt').isNumber() && newData.child('issuedAt').val() <= now && newData.child('issuedAt').val() >= now - 60000",
+          "code": {
+            ".validate": "newData.isString()"
+          },
+          "issuedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    }
+  }
+}
