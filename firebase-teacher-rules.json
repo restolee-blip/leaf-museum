@@ -45,6 +45,28 @@
           ".read": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher')",
           ".write": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher') && newData.exists()",
           ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+        },
+        "roster": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()",
+          ".write": "auth != null && (root.child('rooms').child($room).child('teacherUid').val() === auth.uid || root.child('rooms').child($room).child('members').child(auth.uid).child('role').val() === 'teacher')",
+          "$kidId": {
+            ".validate": "newData.hasChildren(['id','name','deleted','updatedAt']) && newData.child('id').val() === $kidId && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 35 && newData.child('deleted').isBoolean() && newData.child('updatedAt').isNumber()",
+            "id": {
+              ".validate": "newData.isString()"
+            },
+            "name": {
+              ".validate": "newData.isString()"
+            },
+            "deleted": {
+              ".validate": "newData.isBoolean()"
+            },
+            "updatedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
         }
       }
     }
